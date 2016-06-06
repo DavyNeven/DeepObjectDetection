@@ -15,16 +15,16 @@ local data_provider = require 'dataset'
 
 
 print("Loading training data...")
-local train_dataset = data_provider.get_train_dataset()
+local test_dataset = data_provider.get_test_dataset()
 
 print(cutorch.getMemoryUsage(1))
 print("Loading multi-task model")
-local model = torch.load('MultiTaskModel.t7')
+local model = torch.load('OnlyScaleModel05.t7')
 print(cutorch.getMemoryUsage(1))
 print("Move everyting to GPU")
 model:cuda()
 
-local pos_data = train_dataset.pos_data:narrow(1, 1, 100)
+local pos_data = test_dataset.pos_data:narrow(1, 100, 100)
 
 
 pos_data = randomScale(pos_data,48)

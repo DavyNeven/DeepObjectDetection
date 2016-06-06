@@ -3,7 +3,7 @@ require 'image'
 -- requires images of size 48x48 with centered trafficSign
 function randomScale(images, winSize)
   local scaledImages = torch.Tensor(images:size(1), images:size(2), images:size(3), images:size(4))
-  local random = torch.rand(images:size(1) )
+  local random = torch.rand(images:size(1))*0.5
   for i=1, images:size(1) do
     local scaled = image.scale(images[i], "*" .. (1+random[i]))
     scaledImages[i] = image.crop(scaled, "c", winSize, winSize)

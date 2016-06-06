@@ -74,6 +74,6 @@ test(model,criterion,train_dataset,batchSize)
 local hn_patches = HN.get_hard_negatives(model,48,8)
 print("#HN-patches: " .. hn_patches:size(1))
 
-torch.save('OnlyScaleModel.t7', model)
+torch.save('OnlyScaleModel05.t7', model)
 
 
