@@ -7,7 +7,7 @@ torch.setdefaulttensortype('torch.FloatTensor')
 
 local dataset = {}
 
-dataset.pos_image_size = 72; 
+dataset.pos_image_size = 48; 
 dataset.neg_image_size = 48; 
 
 -- Private function declaration
@@ -125,10 +125,10 @@ loadPositiveTrainingSamples = function(parent_path, dim)
       local y2 = csv_content[i][5]
       local w = x2 - x1 + 1;
       local h = y2 - y1 + 1; 
-      x1 = math.max(1, (x1 - w))
-      x2 = math.min(1360, x2 + w)
-      y1 = math.max(1, y1 - h)
-      y2 = math.min(800, y2 + h)
+      x1 = math.max(1, (x1 - w/2))
+      x2 = math.min(1360, x2 + w/2)
+      y1 = math.max(1, y1 - h/2)
+      y2 = math.min(800, y2 + h/2)
       local patch = image_data[{{},{y1,y2},{x1,x2}}] 
       table.insert(images, image.scale(patch, dim, dim))
       table.insert(labels, csv_content[i][6])

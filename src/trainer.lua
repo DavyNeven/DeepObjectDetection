@@ -18,14 +18,14 @@ function train(model, criterion,optimizer, train_dataset, batchSize)
 
   model:training()
   local trainError = 0
-  local augm
+  local scale
   for batchidx = 1, nBatches do
       local pos_input = pos_data:narrow(1, (batchidx-1)*batchSize + 1, batchSize)
-      pos_input, augm = randomCrop(pos_input,48)
+      pos_input, scale = randomScale(pos_input,48)
       local neg_input = neg_data:narrow(1, (batchidx-1)*batchSize + 1, batchSize)
       local inputs = torch.cat(pos_input, neg_input, 1)
       local labels = torch.cat(torch.ones(batchSize), torch.zeros(batchSize))
-      err = optimizer:optimize(optim.sgd, inputs:cuda(), {labels:cuda(), torch.cat(augm, torch.zeros(batchSize,3)):cuda()}, criterion)
+      err = optimizer:optimize(optim.sgd, inputs:cuda(), {labels:cuda(), torch.cat(scale, torch.zeros(batchSize)):cuda()}, criterion)
       --print('epoch : ', epoch, 'batch : ', batchidx, 'train error : ', err)
       trainError = trainError + err
    end
@@ -49,13 +49,13 @@ function test(model, criterion,train_dataset, batchSize)
    local valError = 0
    local correct = 0
    local all = 0
-   local augm
+   local scale
    for batchidx = 1, nBatches do
       local pos_input = train_dataset.pos_data:narrow(1, (batchidx-1)*batchSize + 1, batchSize)
-      pos_input, augm = randomCrop(pos_input,48)
+      pos_input, scale = randomScale(pos_input,48)
       local labels = torch.ones(batchSize)
       local pred = model:forward(pos_input:cuda())
-      valError = valError + criterion:forward(pred, {labels:cuda(), augm:cuda()})
+      valError = valError + criterion:forward(pred, {labels:cuda(), scale:cuda()})
       preds = torch.round(pred[1])
       correct = correct + preds:eq(labels[1]):sum()
       all = all + preds:size(1)
@@ -69,7 +69,7 @@ function test(model, criterion,train_dataset, batchSize)
    local all = 0
    for batchidx = 1, nBatches do
       local neg_input = train_dataset.neg_data:narrow(1, (batchidx-1)*batchSize + 1, batchSize)
-      local labels = {torch.zeros(batchSize):cuda(), torch.zeros(batchSize,3):cuda()}
+      local labels = {torch.zeros(batchSize):cuda(), torch.zeros(batchSize):cuda()}
       local pred = model:forward(neg_input:cuda())
       valError = valError + criterion:forward(pred, labels)
       preds = torch.round(pred[1])

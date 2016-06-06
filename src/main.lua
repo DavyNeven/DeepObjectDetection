@@ -19,7 +19,7 @@ local model = network_provider.getMultiTaskModel()
 print("Creating multi-task criterion")
 local criterion = nn.ParallelCriterion()
 criterion:add(nn.BCECriterion())
-criterion:add(nn.MSECriterion())
+criterion:add(nn.BCECriterion())
 
 print("Creating SGD optimizer")
 local optimState = {learningRate = 0.01, momentum = 0.9, weightDecay = 5e-4}
@@ -74,4 +74,6 @@ test(model,criterion,train_dataset,batchSize)
 local hn_patches = HN.get_hard_negatives(model,48,8)
 print("#HN-patches: " .. hn_patches:size(1))
 
-torch.save('MultiTaskModel.t7', model)
+torch.save('OnlyScaleModel.t7', model)
+
+

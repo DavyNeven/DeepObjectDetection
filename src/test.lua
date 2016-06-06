@@ -27,7 +27,7 @@ model:cuda()
 local pos_data = train_dataset.pos_data:narrow(1, 1, 100)
 
 
-pos_data = randomScale(pos_data)
+pos_data = randomScale(pos_data,48)
 
 local output = model:forward(pos_data:cuda())
 
