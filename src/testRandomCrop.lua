@@ -43,12 +43,7 @@ image.display({image=pos_data})
 local cropped, augm_real = randomCrop(pos_data,48) 
 image.display({image=cropped})
 
-local model = torch.load('MultiTaskModel.t7')
-model:cuda()
-
-local output = model:forward(cropped:cuda())
-print(output)
-image.display({image=undoTransformation(cropped,torch.squeeze(output[2]),48)})
+image.display({image=undoTransformation(cropped,augm_real,48)})
 
 
 

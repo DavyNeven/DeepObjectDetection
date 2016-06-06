@@ -83,7 +83,7 @@ end
 loadBackgroundTrainingImages = function(parent_path)
  print("loading negative training images")
  local images = {}
- local csv_file_name = 'bg_training.csv'
+ local csv_file_name = 'bg.csv'
  local csv_file_path = paths.concat(parent_path, csv_file_name)
  print(csv_file_path)
  local csv_content = pl.data.read(csv_file_path)
