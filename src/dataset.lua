@@ -11,29 +11,37 @@ dataset.pos_image_size = 48;
 dataset.neg_image_size = 48; 
 
 -- Private function declaration
-local generate_dataset
-local loadPositiveTrainingSamples
-local loadBackgroundTrainingImages
+local generate_train_dataset
+local generate_test_dataset
+local loadPositiveSamples
+local loadBackgroundImages
 local extractPatches
 
 
 -- These paths should not be changed
-dataset.parent_path = "/usr/data/dneven/datasets/GTSDB/TrainIJCNN2013"
+dataset.train_parent_path = "/usr/data/dneven/datasets/GTSDB/TrainIJCNN2013"
+dataset.test_parent_path = "/usr/data/dneven/datasets/GTSDB/TestIJCNN2013"
 dataset.train_dataset_bin = "train_dataset.bin"
 dataset.validation_dataset_bin = "validation_dataset.bin"
---dataset.test_dataset_bin = "test_dataset.bin"
+dataset.test_dataset_bin = "test_dataset.bin"
 
 
 -- This function will download the dataset in the './GTSRB' temp folder, and generate
 -- binary files containing the dataset as torch tensors.
 function dataset.generate_bin()
   if not pl.path.isfile(dataset.train_dataset_bin) then
-    print('Generating bin of the dataset')
-    local train_set = generate_dataset(dataset.parent_path)
+    print('Generating bin of the train dataset')
+    local train_set = generate_train_dataset(dataset.train_parent_path)
     torch.save(dataset.train_dataset_bin, train_set)
     train_set = nil
     collectgarbage()
-
+  end
+  if not pl.path.isfile(dataset.test_dataset_bin) then
+    print('Generating bin of the test dataset')
+    local test_set = generate_test_dataset(dataset.test_parent_path)
+    torch.save(dataset.test_dataset_bin, test_set)
+    test_set = nil
+    collectgarbage()
   end
 end
 
@@ -46,6 +54,13 @@ function dataset.get_train_dataset()
   dataset.generate_bin()
   local train_dataset = torch.load(dataset.train_dataset_bin)
   return train_dataset
+end
+
+-- Returns the test dataset
+function dataset.get_test_dataset()
+  dataset.generate_bin()
+  local test_dataset = torch.load(dataset.test_dataset_bin)
+  return test_dataset
 end
 
 -- Normalize the given dataset
@@ -80,11 +95,11 @@ end
 -- This will generate a dataset as torch tensor from a directory of images
 -- parent_path is a string of the path containing all the images
 -- use validation allows to generate a validation set
-generate_dataset = function(parent_path)
+generate_train_dataset = function(parent_path)
   assert(parent_path, "A parent path is needed to generate the dataset")
 
-  local posSamples, posLabels = loadPositiveTrainingSamples(parent_path,dataset.pos_image_size)
-  local bgImages = loadBackgroundTrainingImages(parent_path)
+  local posSamples, posLabels = loadPositiveSamples(parent_path,dataset.pos_image_size)
+  local bgImages = loadBackgroundImages(parent_path)
   local negSamples = extractPatches(bgImages, 50, dataset.neg_image_size)
   
   local pos_data = torch.Tensor(#posSamples, 3,dataset.pos_image_size, dataset.pos_image_size)
@@ -108,8 +123,36 @@ generate_dataset = function(parent_path)
   return main_dataset
 end
 
-loadPositiveTrainingSamples = function(parent_path, dim)
-   print("loading pos training patches")
+generate_test_dataset = function(parent_path)
+  assert(parent_path, "A parent path is needed to generate the dataset")
+
+  local posSamples, posLabels = loadPositiveSamples(parent_path,dataset.pos_image_size)
+  local bgImages = loadBackgroundImages(parent_path)
+  local negSamples = extractPatches(bgImages, 50, dataset.neg_image_size)
+  
+  local pos_data = torch.Tensor(#posSamples, 3,dataset.pos_image_size, dataset.pos_image_size)
+  local pos_label = torch.Tensor(#posSamples, 1)
+  local neg_data = torch.Tensor(#negSamples, 3, dataset.neg_image_size, dataset.neg_image_size)
+
+  for i=1, #posSamples do
+    pos_data[i]:copy(posSamples[i])
+    pos_label[i] = posLabels[i]
+  end
+  
+  for i=1, #negSamples do
+    neg_data[i]:copy(negSamples[i])
+  end
+
+  main_dataset = {}
+  main_dataset.pos_data = pos_data
+  main_dataset.neg_data = neg_data
+  main_dataset.pos_label = pos_label
+
+  return main_dataset
+end
+
+loadPositiveSamples = function(parent_path, dim)
+   print("loading pos patches from " .. parent_path)
    local images = {}
    local labels = {}
    local csv_file_name = 'gt.csv'
@@ -141,10 +184,10 @@ loadPositiveTrainingSamples = function(parent_path, dim)
    return images, labels
 end
 
-loadBackgroundTrainingImages = function(parent_path)
- print("loading negative training images")
+loadBackgroundImages = function(parent_path)
+ print("loading negative images from " .. parent_path)
  local images = {}
- local csv_file_name = 'bg_training.csv'
+ local csv_file_name = 'bg.csv'
  local csv_file_path = paths.concat(parent_path, csv_file_name)
  print(csv_file_path)
  local csv_content = pl.data.read(csv_file_path)
