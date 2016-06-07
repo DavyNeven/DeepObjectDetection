@@ -31,7 +31,7 @@ function networks.getMultiTaskModel()
   local b2 = nn.Sequential()
   -- Fully connected layers
   b2:add(cudnn.SpatialConvolution(200, 3, 1, 1))
-  b2:add(cudnn.Tanh())
+  b2:add(cudnn.Sigmoid())
   pr1:add(b1)
   pr1:add(b2)
   

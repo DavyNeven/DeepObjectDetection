@@ -14,7 +14,7 @@ function vis_rois(img, rois, w)
     w:showpage()
     image.display({image = img, win = w})
 
-    local roisTable = (type(rois) == 'table') and rois or {yellow = rois}
+    local roisTable = (type(rois) == 'table') and rois or {red = rois}
     for color, rois in pairs(roisTable) do
         for i = 1, rois:size(1) do
             local xmin, ymin, xmax, ymax = rois[i][1], rois[i][2], rois[i][3], rois[i][4]
@@ -55,45 +55,15 @@ local function toBBandAugm(input, winSize, stride)
 end
 
 local function doBBregression(BB, augm, winSize)
-    for i=1, BB:size(1) do
-      local val = augm[i]
-      local s = val[1]
-      local sX = val[2]
-      local sY = val[3]
-      local p1 = torch.Tensor({-1,-1})
-      local p2 = torch.Tensor({1,1})
-      -- Apply rescaling
-      p1 = p1*s
-      p2 = p2*s
-      -- move to normal coordinates
-      p1 = p1*winSize/2
-      p2 = p2*winSize/2
-      p1 = p1 + winSize/2
-      p2 = p2 + winSize/2
-      -- Apply shift X dim
-      p1[1] = p1[1] - sX*winSize
-      p2[1] = p2[1] - sX*winSize
-      -- Apply shift Y dim
-      p1[2] = p1[2] - sY*winSize
-      p2[2] = p2[2] - sY*winSize
-      -- Apply offset
-      local xoff = BB[i][1]
-      local yoff = BB[i][2]
-      BB[i][1] = xoff + p1[1] 
-      BB[i][2] = yoff + p1[2]
-      BB[i][3] = p2[1] + xoff
-      BB[i][4] = p2[2] + yoff
-    end
-    return BB
-end
-
-local function rescaleBB(BB, scales, winSize)
-  local offset = winSize/4
   for i=1, BB:size(1) do
-    BB[i][1] = BB[i][1] + (offset - offset*scales[i]) 
-    BB[i][2] = BB[i][2] + (offset - offset*scales[i])
-    BB[i][3] = BB[i][3] - (offset - offset*scales[i])
-    BB[i][4] = BB[i][4] - (offset - offset*scales[i])
+        local val = augm[i]
+        local w = val[1]*winSize
+        local x1 = val[2]*winSize
+        local y1 = val[3]*winSize
+        BB[i][1] = BB[i][1] + x1
+        BB[i][2] = BB[i][2] + y1
+        BB[i][3] = BB[i][1] + w
+        BB[i][4] = BB[i][2] + w
   end
   return BB
 end
@@ -114,27 +84,29 @@ local model = torch.load('MultiTaskModel.t7')
 model:cuda()
 
 local input = image.load('00000.ppm')
-inputs = image.scale(input, "*1")
+inputs = image.scale(input, "*0.8")
 
 --local input = image.load()
 local output = model:forward(inputs:cuda())
 local BB, augm, scores
 BB, augm, scores = toBBandAugm(output,48,8)
 
+vis_rois(inputs, BB)
+
+-- Do NMS
+local NMSselect = nms(BB,0.3,scores)
+BB = BB:index(1, NMSselect)
+augm = augm:index(1, NMSselect)
+scores = scores:index(1, NMSselect)
+
+vis_rois(inputs, BB)
+
+-- do BB regression
+doBBregression(BB,augm,48)
+vis_rois(inputs, BB)
 
 
-BBnms = nms(BB,0.3,scores)
-BBsuppressed = BB:index(1, BBnms)
-print(BBsuppressed)
-vis_rois(inputs,BBsuppressed)
-
---BBnms = nms(BB,0.3,scores)
---BBsuppressed = BB:index(1, BBnms)
---Scalessuppressed = scales:index(1, BBnms)
 
 
---BBsuppressed = rescaleBB(BBsuppressed, Scalessuppressed, 48)
 
-
---vis_rois(inputs,BBsuppressed)
 

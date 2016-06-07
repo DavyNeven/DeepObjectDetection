@@ -19,7 +19,7 @@ local model = network_provider.getMultiTaskModel()
 print("Creating multi-task criterion")
 local criterion = nn.ParallelCriterion()
 criterion:add(nn.BCECriterion())
-criterion:add(nn.MSECriterion())
+criterion:add(nn.AbsCriterion())
 
 print("Creating SGD optimizer")
 local optimState = {learningRate = 0.01, momentum = 0.9, weightDecay = 5e-4}
