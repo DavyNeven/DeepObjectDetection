@@ -16,9 +16,9 @@ function randomCrop(images, winSize)
 local croppedImages = torch.Tensor(images:size(1), images:size(2), winSize, winSize)
 local augm = torch.Tensor(images:size(1), 3)
 for i=1, images:size(1) do
-  local w = torch.floor(torch.rand(1)[1]*17) + 32 -- min 32, max 48
-  local shiftX = 0--torch.trunc((torch.rand(1)[1]*2 - 1)*(w-22)/2)
-  local shiftY = 0--torch.trunc((torch.rand(1)[1]*2 - 1)*(w-22)/2)
+  local w = torch.floor(torch.rand(1)[1]*27) + 22 -- min 22, max 48
+  local shiftX = torch.trunc((torch.rand(1)[1]*2 - 1)*(w-22)/2)
+  local shiftY = torch.trunc((torch.rand(1)[1]*2 - 1)*(w-22)/2)
   local cx = 36 + shiftX
   local cy = 36 + shiftY
   local x1 = torch.round(cx-w/2)

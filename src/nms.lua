@@ -36,8 +36,6 @@ function nms(boxes, overlap, scores)
   
   if type(scores) == 'number' then
     scores = boxes[{{}, scores}]
-    print(scores)
-    print("ranking scores")
   elseif scores == 'area' then
     scores = area
     print("ranking area")
