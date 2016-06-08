@@ -7,7 +7,6 @@ function vis_rois(img, rois, w)
     require 'qt'
     require 'image'
     require 'qtwidget'
-
     if not w then
         w = qtwidget.newwindow(img:size(3), img:size(2), '')
     end
@@ -32,26 +31,25 @@ local function toBBandAugm(input, winSize, stride)
   local augmMap = input[2]
   local selection = torch.round(map)
   local numberWins = torch.sum(selection)
-  local BB = torch.Tensor(numberWins, 4)
+  local BB = torch.Tensor(numberWins, 5)
   local augm = torch.Tensor(numberWins,3)
-  local scores = torch.Tensor(numberWins)
   local count = 1
   for i = 1, selection:size(2) do
     for j = 1, selection:size(3) do 
         if(selection[1][i][j] == 1) then
-          local bb = torch.Tensor(4)
+          local bb = torch.Tensor(5)
           bb[1] = (j-1)*stride + 1
           bb[2] = (i-1)*stride + 1
           bb[3] = bb[1] + winSize - 1
           bb[4] = bb[2] + winSize -1
-          scores[count] = (map[1][i][j])
+          bb[5] = (map[1][i][j])
           BB[count]:copy(bb)
           augm[count]:copy(torch.squeeze(augmMap[{{},{i},{j}}]))
           count = count + 1
         end
     end
   end   
-  return BB, augm, scores
+  return BB, augm
 end
 
 local function doBBregression(BB, augm, winSize)
@@ -68,36 +66,23 @@ local function doBBregression(BB, augm, winSize)
   return BB
 end
 
-extractPatches = function(image, BB, winSize)
-  local patches = torch.Tensor(BB:size(1), 3, winSize, winSize)
-  for i = 1, BB:size(1) do
-      local x1 = BB[i][1]
-      local y1 = BB[i][2]
-      local x2 = BB[i][3]
-      local y2 = BB[i][4]
-      patches[i]:copy(image[{{},{y1, y2},{x1, x2}}])
-  end
-  return patches
-end
-
 local model = torch.load('MultiTaskModel.t7')
 model:cuda()
 
-local input = image.load('00000.ppm')
-inputs = image.scale(input, "*0.8")
+local input = image.load('00829.ppm')
+inputs = image.scale(input, "*1")
 
 --local input = image.load()
 local output = model:forward(inputs:cuda())
-local BB, augm, scores
-BB, augm, scores = toBBandAugm(output,48,8)
+local BB, augm
+BB, augm = toBBandAugm(output,48,8)
 
 vis_rois(inputs, BB)
 
 -- Do NMS
-local NMSselect = nms(BB,0.3,scores)
+local NMSselect = nms(BB,0.3,5)
 BB = BB:index(1, NMSselect)
 augm = augm:index(1, NMSselect)
-scores = scores:index(1, NMSselect)
 
 vis_rois(inputs, BB)
 
