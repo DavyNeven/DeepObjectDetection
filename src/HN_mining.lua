@@ -17,7 +17,9 @@ function HN_mining.get_hard_negatives(model, winSize, stride)
   local bg_images = getBackgroundTrainingImages()
   local totalPatches = {}
   for i=1, #bg_images do
-    local output = model:forward(bg_images[i]:cuda())
+    local input = torch.Tensor(1, bg_images[i]:size(1), bg_images[i]:size(2), bg_images[i]:size(3))
+    input[1] = bg_images[i]
+    local output = model:forward(input:cuda())
     output = output[1]
     local BB = mapToBB(output, winSize, stride)
     if(BB:nDimension() ~= 0) then 
@@ -46,24 +48,25 @@ extractPatches = function(image, BB, winSize)
 end
 
 mapToBB = function(map, winSize, stride)
- local selection = torch.round(map)
+  map = torch.squeeze(map)
+  local selection = torch.round(map)
   local numberWins = torch.sum(selection)
   local BB = torch.Tensor(numberWins, 5)
   local count = 1
-  for i = 1, selection:size(2) do
-    for j = 1, selection:size(3) do 
-        if(selection[1][i][j] == 1) then
+  for i = 1, selection:size(1) do
+    for j = 1, selection:size(2) do 
+        if(selection[i][j] == 1) then
           local bb = torch.Tensor(5)
           bb[1] = (j-1)*stride + 1
           bb[2] = (i-1)*stride + 1
           bb[3] = bb[1] + winSize - 1
           bb[4] = bb[2] + winSize -1
-          bb[5] = (map[1][i][j])
+          bb[5] = map[i][j]
           BB[count]:copy(bb)
           count = count + 1
         end
     end
-  end   
+  end
   return BB
 end
 

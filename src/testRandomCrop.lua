@@ -1,4 +1,5 @@
 require 'cudnn'
+require 'cunn'
 require 'augmenter'
 
 local data_provider = require 'dataset'
@@ -30,6 +31,7 @@ image.display({image=cropped})
 image.display({image=undoTransformation(cropped,augm_real,48)})
 
 local multiTaskModel = torch.load("MultiTaskModel.t7")
+multiTaskModel:evaluate()
 local output = multiTaskModel:forward(cropped:cuda())
 
 image.display({image=undoTransformation(cropped,torch.squeeze(output[2]),48)})
