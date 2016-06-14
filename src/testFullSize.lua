@@ -60,6 +60,7 @@ model:cuda()
 model:evaluate()
 
 local im = image.load('00001.ppm')
+print(im:size(1) .. " " .. im:size(2) .. " " .. im:size(3))
 local im1 = image.scale(im, "*0.8")
 local im2 = image.scale(im, "*0.6")
 local im3 = image.scale(im, "*0.4")

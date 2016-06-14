@@ -18,10 +18,11 @@ model:evaluate()
 
 MultiScaleDetector.init(model)
 
-local im  = cv.imread{'00829.ppm'}
-im = im:float():div(255)
-cv.cvtColor{im, dst=im, code=cv.COLOR_BGR2RGB}
-local I = im:permute(3,1,2):clone()
+local im  = cv.imread{'00001.ppm'}
+local I = im:clone()
+I = I:float():div(255)
+cv.cvtColor{I, dst=I, code=cv.COLOR_BGR2RGB}
+I = I:permute(3,1,2)
 
 local BBs = MultiScaleDetector.doMultiScaleDetection(I)
  print(BBs)

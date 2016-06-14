@@ -10,7 +10,7 @@ require 'cv.videoio' -- Video stream
 require 'cv.imgproc' -- Image processing (resize, crop, draw text, ...)
 require 'nn'
 
-local capture = cv.VideoCapture{device=0}
+local capture = cv.VideoCapture{device=2}
 if not capture:isOpened() then
    print("Failed to open the default camera")
    os.exit(-1)

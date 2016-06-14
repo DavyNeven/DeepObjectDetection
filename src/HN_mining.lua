@@ -14,17 +14,17 @@ HN_mining.parent_path = "/usr/data/dneven/datasets/GTSDB/TrainIJCNN2013"
 HN_mining.bg_bin = "bg_training_dataset.bin"
 
 function HN_mining.get_hard_negatives(model, winSize, stride)
+  local MultiScaleDetector = require 'MultiScaleDetector'
+  MultiScaleDetector.init(model, winSize, stride)
   local bg_images = getBackgroundTrainingImages()
   local totalPatches = {}
   for i=1, #bg_images do
-    local input = torch.Tensor(1, bg_images[i]:size(1), bg_images[i]:size(2), bg_images[i]:size(3))
-    input[1] = bg_images[i]
-    local output = model:forward(input:cuda())
-    output = output[1]
-    local BB = mapToBB(output, winSize, stride)
+    --local output = model:forward(input:cuda())
+    --output = output[1]
+    local BB = MultiScaleDetector.doMultiScaleDetectionNoRegression(bg_images[i])--mapToBB(output, winSize, stride)
     if(BB:nDimension() ~= 0) then 
-      local selection = nms(BB,0.3,5)
-      BB = BB:index(1, selection)
+      --local selection = nms(BB,0.3,5)
+      --BB = BB:index(1, selection)
       print("Image : " .. i .. " extracted patches: " .. BB:size(1))
       local patches = extractPatches(bg_images[i], BB, winSize)
       table.insert(totalPatches,patches)
@@ -35,39 +35,17 @@ function HN_mining.get_hard_negatives(model, winSize, stride)
   return output  
 end
 
-extractPatches = function(image, BB, winSize)
+extractPatches = function(im, BB, winSize)
   local patches = torch.Tensor(BB:size(1), 3, winSize, winSize)
   for i = 1, BB:size(1) do
       local x1 = BB[i][1]
       local y1 = BB[i][2]
       local x2 = BB[i][3]
       local y2 = BB[i][4]
-      patches[i]:copy(image[{{},{y1, y2},{x1, x2}}])
+      local patch = image.scale(im[{{},{y1, y2},{x1, x2}}], winSize, winSize)
+      patches[i]:copy(patch)
   end
   return patches
-end
-
-mapToBB = function(map, winSize, stride)
-  map = torch.squeeze(map)
-  local selection = torch.round(map)
-  local numberWins = torch.sum(selection)
-  local BB = torch.Tensor(numberWins, 5)
-  local count = 1
-  for i = 1, selection:size(1) do
-    for j = 1, selection:size(2) do 
-        if(selection[i][j] == 1) then
-          local bb = torch.Tensor(5)
-          bb[1] = (j-1)*stride + 1
-          bb[2] = (i-1)*stride + 1
-          bb[3] = bb[1] + winSize - 1
-          bb[4] = bb[2] + winSize -1
-          bb[5] = map[i][j]
-          BB[count]:copy(bb)
-          count = count + 1
-        end
-    end
-  end
-  return BB
 end
 
 getBackgroundTrainingImages = function()

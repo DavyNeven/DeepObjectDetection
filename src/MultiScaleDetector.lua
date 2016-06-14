@@ -8,7 +8,7 @@ local MultiScaleDetector = {}
 MultiScaleDetector.model = nil
 MultiScaleDetector.winSize = 48
 MultiScaleDetector.stride = 8
-MultiScaleDetector.scales = {0.8, 0.6, 0.4}
+MultiScaleDetector.scales = {1,0.8,0.6,0.4}
 
 -- Define private functions 
 local toBBandAugm
@@ -25,13 +25,15 @@ function MultiScaleDetector.init(model, winSize, stride, scales)
   MultiScaleDetector.scales = MultiScaleDetector.scales or scales
 end
 
-
 function MultiScaleDetector.doMultiScaleDetection(im)
   -- Move image to GPU
   local BBs = {}
   local count = 1
   for i = 1, #MultiScaleDetector.scales do
-    local input = image.scale(im, "*" .. MultiScaleDetector.scales[i]):cuda()
+    --print(im:size(1) .. " " .. im:size(2) .. " " .. im:size(3))
+    local h = im:size(2)*MultiScaleDetector.scales[i]
+    local w = im:size(3)*MultiScaleDetector.scales[i]
+    local input = image.scale(im, w, h):cuda()
     local output = MultiScaleDetector.model:forward(input)
     local BB, augm = toBBandAugm(output, MultiScaleDetector.winSize, MultiScaleDetector.stride)
     -- Do NMS
@@ -41,6 +43,37 @@ function MultiScaleDetector.doMultiScaleDetection(im)
       augm = augm:index(1, NMSselect)
       -- do BB regression
       undoRandomCrop(BB,augm,MultiScaleDetector.winSize)
+      rescaleBB(BB, MultiScaleDetector.scales[i])
+      BBs[count] = BB 
+      count = count + 1
+    end
+  end
+  -- Convert BBs to tensor
+  local output = torch.Tensor()
+  if(#BBs > 1) then
+    local join = nn.JoinTable(1);
+    output = join:forward(BBs)
+    local NMSselect = nms(output,0.3,5)
+    output = output:index(1, NMSselect)
+  end
+  return output
+end
+
+function MultiScaleDetector.doMultiScaleDetectionNoRegression(im)
+  -- Move image to GPU
+  local BBs = {}
+  local count = 1
+  for i = 1, #MultiScaleDetector.scales do
+    --print(im:size(1) .. " " .. im:size(2) .. " " .. im:size(3))
+    local h = im:size(2)*MultiScaleDetector.scales[i]
+    local w = im:size(3)*MultiScaleDetector.scales[i]
+    local input = image.scale(im, w, h):cuda()
+    local output = MultiScaleDetector.model:forward(input)
+    local BB, augm = toBBandAugm(output, MultiScaleDetector.winSize, MultiScaleDetector.stride)
+    -- Do NMS
+    if(BB:dim() ~= 0) then
+      local NMSselect = nms(BB,0.3,5)
+      BB = BB:index(1, NMSselect)
       rescaleBB(BB, MultiScaleDetector.scales[i])
       BBs[count] = BB 
       count = count + 1
