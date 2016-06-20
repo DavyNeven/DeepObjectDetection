@@ -41,7 +41,11 @@ test(model,criterion,train_dataset,batchSize)
 
 -- Do hard negative mining
 local hn_patches = HN.get_hard_negatives(model,48,8)
-print("#HN-patches: " .. hn_patches:size(1))
+if(hn_patches:dim() == 0) then
+  print("#HN-patches: 0")
+else
+  print("#HN-patches: " .. hn_patches:size(1))
+end
 
 -- Combine negative patches with HN patches
 m = nn.JoinTable(1);
@@ -57,7 +61,11 @@ test(model,criterion,train_dataset,batchSize)
 
 -- Do hard negative mining
 local hn_patches = HN.get_hard_negatives(model,48,8)
-print("#HN-patches: " .. hn_patches:size(1))
+if(hn_patches:dim() == 0) then
+  print("#HN-patches: 0")
+else
+  print("#HN-patches: " .. hn_patches:size(1))
+end
 
 -- Combine negative patches with HN patches
 m = nn.JoinTable(1);
@@ -72,6 +80,10 @@ test(model,criterion,train_dataset,batchSize)
 
 -- Do hard negative mining
 local hn_patches = HN.get_hard_negatives(model,48,8)
-print("#HN-patches: " .. hn_patches:size(1))
+if(hn_patches:dim() == 0) then
+  print("#HN-patches: 0")
+else
+  print("#HN-patches: " .. hn_patches:size(1))
+end
 
-torch.save('MultiTaskModel.t7', model)
+torch.save('MultiTaskModelEuro.t7', model)

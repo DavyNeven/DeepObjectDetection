@@ -10,8 +10,9 @@ local getBackgroundTrainingImages
 local mapToBB
 local extractPatches
 
-HN_mining.parent_path = "/usr/data/dneven/datasets/GTSDB/TrainIJCNN2013"
-HN_mining.bg_bin = "bg_training_dataset.bin"
+HN_mining.parent_path = {"/usr/data/dneven/MOOSlogs/moosLogs/fridayRecording/fridayRecording/log_4_12_2015_____11_28_07/",
+                          "/usr/data/dneven/datasets/GTSDB/TrainIJCNN2013"}
+HN_mining.bg_bin = "HN_dataset.bin"
 
 function HN_mining.get_hard_negatives(model, winSize, stride)
   local MultiScaleDetector = require 'MultiScaleDetector'
@@ -51,7 +52,7 @@ end
 getBackgroundTrainingImages = function()
   local bg_images
   if not pl.path.isfile(HN_mining.bg_bin) then
-    print('Generating bin of the background dataset')
+    print('Generating bin of the HN dataset')
     bg_images = loadBackgroundTrainingImages(HN_mining.parent_path)
     torch.save(HN_mining.bg_bin, bg_images)
   else
@@ -64,15 +65,19 @@ loadBackgroundTrainingImages = function(parent_path)
  print("loading negative training images")
  local images = {}
  local csv_file_name = 'bg.csv'
- local csv_file_path = paths.concat(parent_path, csv_file_name)
- print(csv_file_path)
- local csv_content = pl.data.read(csv_file_path)
- for i = 1, #csv_content do
-    local file = csv_content[i][1]
-    local image_data = image.load(paths.concat(parent_path, file))
-    images[i] = image_data
- end
- print('Loaded images:', #images)
+ local count = 1
+ for j = 1, #parent_path do
+   local csv_file_path = paths.concat(parent_path[j], csv_file_name)
+   print(csv_file_path)
+   local csv_content = pl.data.read(csv_file_path)
+   for i = 1, #csv_content do
+      local file = csv_content[i][1]
+      local image_data = image.load(paths.concat(parent_path[j], file))
+      images[count] = image_data
+      count = count + 1
+   end
+  end
+  print('Loaded images:', #images)
  return images
 end
 
