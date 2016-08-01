@@ -18,7 +18,7 @@ model:evaluate()
 
 MultiScaleDetector.init(model)
 
-local im  = cv.imread{'/usr/data/dneven/MOOSlogs/moosLogs/fridayRecording/fridayRecording/log_4_12_2015_____11_23_25/imageCompressedCam1_0000080.jpg'}
+local im  = cv.imread{'/usr/data/dneven/MOOSlogs/moosLogs/fridayRecording/fridayRecording/log_4_12_2015_____11_23_25/imageCompressedCam1_0000085.jpg'}
 local I = im:clone()
 I = I:float():div(255)
 cv.cvtColor{I, dst=I, code=cv.COLOR_BGR2RGB}

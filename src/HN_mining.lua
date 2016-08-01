@@ -10,7 +10,7 @@ local getBackgroundTrainingImages
 local mapToBB
 local extractPatches
 
-HN_mining.parent_path = {"/usr/data/dneven/MOOSlogs/moosLogs/fridayRecording/fridayRecording/log_4_12_2015_____11_28_07/",
+HN_mining.parent_path = {--"/usr/data/dneven/MOOSlogs/moosLogs/fridayRecording/fridayRecording/log_4_12_2015_____11_28_07/"}--,
                           "/usr/data/dneven/datasets/GTSDB/TrainIJCNN2013"}
 HN_mining.bg_bin = "HN_dataset.bin"
 

@@ -85,5 +85,5 @@ if(hn_patches:dim() == 0) then
 else
   print("#HN-patches: " .. hn_patches:size(1))
 end
-
+model:clearState()
 torch.save('MultiTaskModelEuro.t7', model)
