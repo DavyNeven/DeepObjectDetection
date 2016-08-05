@@ -1,7 +1,7 @@
 require 'cudnn'
 require 'image'
 
-local MultiScaleDetector = require 'MultiScaleDetector'
+local MultiScaleDetector = require 'src/MultiScaleDetector'
 
 local cv = require 'cv'
 require 'cv.highgui' -- GUI
@@ -18,7 +18,7 @@ model:evaluate()
 
 MultiScaleDetector.init(model)
 
-local im  = cv.imread{'00001.ppm'}
+local im  = cv.imread{'00000.ppm'}
 local I = im:clone()
 I = I:float():div(255)
 cv.cvtColor{I, dst=I, code=cv.COLOR_BGR2RGB}

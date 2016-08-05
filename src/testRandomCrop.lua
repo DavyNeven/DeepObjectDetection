@@ -1,8 +1,8 @@
 require 'cudnn'
 require 'cunn'
-require 'augmenter'
+require 'src/augmenter'
 
-local data_provider = require 'dataset'
+local data_provider = require 'src/dataset'
 
 local function undoTransformation(images, augm, winSize)
   print(augm)

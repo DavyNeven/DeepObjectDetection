@@ -1,7 +1,7 @@
 require 'cudnn'
 require 'image'
-require 'nms'
-require 'augmenter'
+require 'src/nms'
+require 'src/augmenter'
 
 local MultiScaleDetector = {}
 

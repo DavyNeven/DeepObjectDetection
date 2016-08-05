@@ -9,7 +9,7 @@
 --   overlap   Intersection-over-union (IoU) threshold for suppression,
 --             all boxes with va alues higher than this threshold will 
 --             be suppressed.
---   scores    (optional) Defines in which order boxes are processed.
+--   scores    Which dimension contains the scorevalues! (optional) Defines in which order boxes are processed.
 --             Either the string 'area' or a tensor holding 
 --             score-values. Boxes will be processed sorted descending
 --             after this value.
