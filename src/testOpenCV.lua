@@ -17,8 +17,9 @@ model:cuda()
 model:evaluate()
 
 MultiScaleDetector.init(model)
+MultiScaleDetector.scales= {1,0.9,0.8,0.7,0.6,0.5,0.4,0.3,0.2}
 
-local im  = cv.imread{'00000.ppm'}
+local im  = cv.imread{'00001.ppm'}
 local I = im:clone()
 I = I:float():div(255)
 cv.cvtColor{I, dst=I, code=cv.COLOR_BGR2RGB}

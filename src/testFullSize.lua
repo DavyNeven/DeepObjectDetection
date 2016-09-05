@@ -55,11 +55,11 @@ local function toBBandAugm(input, winSize, stride)
   return BB, augm
 end
 
-local model = torch.load('MultiTaskModel.t7')
+local model = torch.load('../MultiTaskModel.t7')
 model:cuda()
 model:evaluate()
 
-local im = image.load('00001.ppm')
+local im = image.load('../00001.ppm')
 print(im:size(1) .. " " .. im:size(2) .. " " .. im:size(3))
 local im1 = image.scale(im, "*0.8")
 local im2 = image.scale(im, "*0.6")
